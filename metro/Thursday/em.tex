@@ -1,0 +1,149 @@
+\documentclass{slides}
+\usepackage{times}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{epsfig}
+\newcommand{\heading}[1]{\begin{center}\large\bf #1\end{center}} 
+\topmargin -1in
+\oddsidemargin -0.5in
+\textwidth 7.5in
+\textheight 10.5in
+\itemsep -1in
+\newcommand{\maketilde}{\raisebox{0.4ex}{\scriptsize $\sim$}}
+\newcommand{\argmax}{\operatorname{argmax}}
+\begin{document}
+
+\begin{slide}
+\heading{The Expectation Maximization (EM) algorithm}
+
+Given a set of observed (visible) variables $V$, a set of unobserved (hidden)
+variables $H$, and model parameters $\theta$, optimize the log likelihood:
+%
+\begin{equation}
+{\cal L}(\theta)=\log p(V|\theta)=\log \int p(H,V|\theta)dH.
+\end{equation}
+%
+Using \emph{Jensen's inequality} for \emph{any} distribution of hidden states
+$q(H)$ we have:
+%
+\begin{equation}
+\begin{split}
+{\cal L}=&\log\int q(H)\frac{p(H,V|\theta)}{q(H)}dH\\
+\geq&\int q(H)\log\frac{p(H,V|\theta)}{q(H)}dH={\cal F}(q,\theta).
+\end{split}
+\end{equation}
+%
+In the EM algorithm, we iteratively alternate:
+%
+\vspace*{-0.4in}
+\begin{description}
+\item[E step] optimize ${\cal F}(q,\theta)$ wrt the distribution over hidden
+variables given the parameters:
+\begin{equation}
+q^{(k)}(H):=\underset{q(H)}{\argmax}\;\;{\cal F}\big(q(H),\theta^{(k-1)}\big).
+\end{equation}
+\vspace*{-1.0in}\phantom{eeeks}
+\item[M step] maximize ${\cal F}(q,\theta)$ wrt the parameters given
+the hidden distribution:
+\begin{equation}
+\theta^{(k)}:=\underset{\theta}{\argmax}\;\;
+{\cal F}\big(q^{(k)}(H),\theta\big),
+\end{equation}
+which is equivalent to optimizing the \emph{complete} likelihood
+$p(H,V|\theta)$, since $q(H)$ does not depend on $\theta$
+\end{description}
+\vspace*{-0.5in}
+until convergence.
+
+\end{slide}
+
+\begin{slide}
+\heading{More EM algorithm}
+
+The difference between the cost functions
+%
+\begin{equation}
+\begin{split}
+{\cal L}(\theta)-{\cal F}(q,\theta)\;=\;&-\int
+q(H)\log\frac{p(H|V,\theta)}{q(H)}dH\\
+=&\; {\cal KL}\big(q(H),p(H|V,\theta)\big),
+\end{split}
+\end{equation}
+%
+is called the Kullback-Liebler divergence is non-negative and only zero when
+$q(H)=p(H|V,\theta)$ (thus this is the M step). Although we are working with
+the wrong cost function, the likelihood is still increased in every iteration:
+%
+\begin{equation}
+\begin{split}
+{\cal L}\big(\theta^{(k-1)}\big)\;=&\;{\cal F}\big(q^{(k)},\theta^{(k-1)}\big)\\
+\leq&\;{\cal F}\big(q^{(k)},\theta^{(k)}\big)\\
+\leq&\;{\cal L}\big(\theta^{(k)}\big),
+\end{split}
+\end{equation}
+where the first equation holds because of the E step, and the first inequality
+comes from the M step and the final inequality from Jensen. Usually EM
+converges to a local optimum of ${\cal L}$ (although there are exceptions).
+
+\end{slide}
+
+\begin{slide}
+\heading{The Gaussian mixture model (E-step)}
+
+In the Gaussian mixture density model, the denseties are given by:
+\[
+p(x|\theta) \propto \sum_{k=1}^K \frac{\pi_k}{\sigma_k}\exp(-\frac{1}{2\sigma_k^2}(x-\mu_k)^2),
+\]
+where $\theta$ is the collection of parameters: means $\mu_k$,
+variances $\sigma_k^2$ and mixing proportions $\pi_k$ (which must be
+positive and sum to one).
+
+There are (binary) hidden variables $H_i^{(c)}$, indicating which
+component observation $x^{(n)}$ belongs to. The conditional likelihood is:
+\[
+p(x|H,\theta) = \sum_{k=1}^KH_k\sigma_k^{-1}\exp(-\frac{1}{2\sigma_k^2}(x-\mu_k)^2),
+\]
+and the prior for component $k$ is:
+\[
+p(H_k|\theta)=\pi_k.
+\]
+In the E-step, we need to compute the posterior for the hidden states
+given the current variables:
+\[
+\begin{split}
+Q(H|x,\theta)=&Q(H)\propto P(x|H,\theta)P(H|\theta)\\
+Q(H_k^{(c)})&\propto \frac{\pi_k}{\sigma_k}\exp(-\frac{1}{2\sigma_k^2}(x^{(c)}-\mu_k)^2),
+\end{split}
+\]
+with the normalization being $Q(H_k)/\sum_kQ(H_k)$.
+
+\end{slide}
+
+\begin{slide}
+\heading{The Gaussian mixture model (M-step)}
+
+In the M-step we optimize the sum (since H is discrete):
+\[
+\begin{split}
+E&= \sum Q(H)\log[p(x|H,\theta)p(H|\theta)]\\
+&=\sum_c Q(H^{(c)}_k)\big[\log\pi_k-\log\sigma_k-\frac{1}{2\sigma_k^2}(x^{(c)}-\mu_k)^2\big] 
+\end{split}
+\]
+Optimization wrt.~the parameters is done by setting the partial derivatives of $E$ to zero:
+\[
+\begin{split}
+\frac{\partial E}{\partial \mu_k}=\sum_cQ(H_k^{(c)})&\frac{(x^{(c)}-\mu_k)}{2\sigma_k^2} = 0\\
+\Rightarrow & \mu_k = \frac{\sum_cQ(H^{(c)}_k)x^{(c)}}{\sum_c Q(H_k^{(c)})},\\
+\frac{\partial E}{\partial \sigma_k}=\sum_cQ(H_k^{(c)})&\big[-\frac{1}{\sigma_k}-\frac{(x^{(c)}-\mu_k)}{\sigma_k^3}\big] = 0\\
+\Rightarrow & \sigma_k^2 = \frac{\sum_cQ(H^{(c)}_k)(x^{(c)}-\mu_k)^2}{\sum_c Q(H_k^{(c)})},\\
+\frac{\partial E}{\partial\pi_k} = \sum_cQ(H_k^{(c)})&\frac{1}{\pi_k},\qquad \frac{\partial E}{\partial\pi_k}+\lambda=0\\
+\Rightarrow & \pi_k=\frac{1}{n}\sum_cQ(H_k^{(c)}),
+\end{split}
+\]
+where $\lambda$ is a Lagrange multiplier ensuring that the mixing
+proportions sum to unity.
+\end{slide}
+\end{document}
+
+
+

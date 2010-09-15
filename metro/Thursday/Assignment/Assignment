@@ -1,0 +1,22 @@
+Assignment for Thursday October 19.
+
+--
+
+Make some experiments with the simple mix.m script. Does the log
+likelihood grow at every iteration? Is the model subject to local
+minima problems? Can the model overfit? How can we find a suitable
+number of mixture components?
+
+--
+
+Write a new version of the EM algortihm for mixtures of multivariate
+Gaussians, with general covariance matrices.
+
+Examine the data in "X":
+
+load X
+plot3(X(:,1),X(:,2),X(:,3),'+')
+
+Use your multivariate Gaussian EM algorithm to fit the data in 3
+dimensions. How many mixture do you need? Can you visualise the
+distribution that your model is finding?
